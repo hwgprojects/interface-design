@@ -1,5 +1,7 @@
 # Design Directions
 
+This skill is for **interface design** — dashboards, admin panels, apps, tools. Not for marketing sites or landing pages.
+
 Before writing any code, commit to a design direction. Don't default. Think about what this specific product needs to feel like.
 
 ## Think About Context
@@ -17,7 +19,7 @@ Before writing any code, commit to a design direction. Don't default. Think abou
 
 **Sophistication & Trust** — Cool tones, layered depth, financial gravitas. For products handling money or sensitive data. Think Stripe, Mercury, enterprise B2B.
 
-**Boldness & Clarity** — High contrast, dramatic negative space, confident typography. For products that want to feel modern and decisive. Think Vercel, minimal dashboards.
+**Boldness & Clarity** — High contrast, dramatic negative space, confident typography. For products that want to feel modern and decisive. Think minimal dashboards, data-forward apps.
 
 **Utility & Function** — Muted palette, functional density, clear hierarchy. For products where the work matters more than the chrome. Think GitHub, developer tools.
 
@@ -30,7 +32,7 @@ Pick one. Or blend two. But commit to a direction that fits the product.
 | Product Type | Suggested Direction |
 |--------------|---------------------|
 | Dashboard / Admin | Precision & Density |
-| Marketing / Landing | Boldness & Clarity |
+| Settings / Config | Utility & Function |
 | Documentation | Utility & Function |
 | Collaborative Tool | Warmth & Approachability |
 | Finance / Sensitive Data | Sophistication & Trust |

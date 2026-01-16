@@ -1,9 +1,11 @@
 ---
 name: design-engineer:init
-description: Smart dispatcher - detects mode and builds UI with craft, memory, and enforcement.
+description: Smart dispatcher - detects mode and builds UI with craft, memory, and enforcement. For interface design (dashboards, apps, tools) — not marketing sites.
 ---
 
 Use the design-engineer skill to establish or apply a design system.
+
+**Scope:** Interface design only — dashboards, apps, tools, admin panels. Not for landing pages or marketing sites.
 
 Start by checking if `.design-engineer/system.md` exists in the current project:
 

@@ -1,11 +1,51 @@
 ---
 name: design-engineer
-description: This skill should be used when building user interfaces, creating UI components, designing dashboards, or working on frontend visual design. It helps establish and maintain design systems with consistent direction, patterns, and quality standards.
+description: This skill is for interface design — dashboards, admin panels, apps, tools, and interactive products. NOT for marketing design (landing pages, marketing sites, campaigns). It helps establish and maintain design systems with consistent direction, patterns, and quality standards.
 ---
 
 # Design Engineer
 
-Help establish and maintain design systems. Ensure consistency across sessions.
+Help establish and maintain design systems for **interface design**. Ensure consistency across sessions.
+
+## What This Is For
+
+**Use this skill for:**
+- Dashboards and admin panels
+- SaaS applications and tools
+- Data-heavy interfaces
+- Interactive products
+- Settings pages and forms
+- Component libraries
+
+**Do NOT use for:**
+- Landing pages
+- Marketing sites
+- Campaign pages
+- Promotional content
+- One-off marketing assets
+
+Marketing design has different goals (conversion, impression, storytelling) than interface design (usability, efficiency, clarity). This skill optimizes for the latter.
+
+## Detect & Redirect Marketing Requests
+
+**Before proceeding**, check if the user's request is for marketing design. Look for these signals:
+
+**Keywords**: "landing page", "marketing site", "hero section", "above the fold", "conversion", "CTA-focused", "campaign", "promotional", "launch page", "product page" (in marketing context), "signup page" (standalone), "waitlist page"
+
+**Patterns**:
+- Single-page sites meant to convert visitors
+- Pages focused on selling/promoting rather than using
+- Requests emphasizing "impressive", "bold", "eye-catching" for first impressions
+
+**If detected**, respond with:
+
+> "This skill is built for **interface design** — dashboards, apps, tools, admin panels. What you're describing sounds like marketing design, which has different goals (conversion, storytelling, first impressions).
+>
+> For landing pages and marketing sites, try `/frontend-design` instead — it's better suited for that kind of work.
+>
+> If you actually meant an interface (like a user dashboard or settings page), let me know and I'll continue."
+
+Then **stop** and wait for user response. Do not proceed with establishment or building.
 
 ## If system.md exists
 

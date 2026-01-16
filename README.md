@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <em>For interface design — dashboards, apps, tools, admin panels. Not for marketing sites.</em>
+</p>
+
+<p align="center">
   <a href="#installation">Install</a> ·
   <a href="#how-it-works">How It Works</a> ·
   <a href="#examples">Examples</a> ·
@@ -23,7 +27,7 @@ When you build UI with Claude, design decisions get made: spacing values, colors
 
 **Design Engineer helps you:**
 
-1. **Craft** — Smart direction inference (dashboard → precision, marketing → bold)
+1. **Craft** — Smart direction inference (dashboard → precision, settings → utility)
 2. **Memory** — Save decisions to `.design-engineer/system.md`, load automatically
 3. **Enforcement** — Validate UI code against your system, catch violations before you see them
 
@@ -213,7 +217,7 @@ The skill infers direction from project context, but you can customize:
 | **Precision & Density** | Tight, technical, monochrome | Developer tools, admin dashboards |
 | **Warmth & Approachability** | Generous spacing, soft shadows | Collaborative tools, consumer apps |
 | **Sophistication & Trust** | Cool tones, layered depth | Finance, enterprise B2B |
-| **Boldness & Clarity** | High contrast, dramatic space | Marketing sites, modern dashboards |
+| **Boldness & Clarity** | High contrast, dramatic space | Modern dashboards, data-heavy apps |
 | **Utility & Function** | Muted, functional density | GitHub-style tools |
 | **Data & Analysis** | Chart-optimized, numbers-first | Analytics, BI tools |
 
