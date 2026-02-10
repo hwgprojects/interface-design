@@ -180,7 +180,23 @@ function parseSimpleYaml(yamlText) {
 
 function coerceYamlScalar(value) {
   const quoted = value.match(/^(["'])(.*)\1$/)
-  if (quoted) return quoted[2]
+  if (quoted) {
+    const quote = quoted[1]
+    const inner = quoted[2]
+
+    // Minimal YAML string unescaping.
+    // - double-quoted scalars support backslash escapes (similar to JSON)
+    // - single-quoted scalars escape a single quote by doubling it
+    if (quote === '"') {
+      try {
+        return JSON.parse(`"${inner}"`)
+      } catch {
+        return inner
+      }
+    }
+
+    return inner.replace(/''/g, "'")
+  }
   if (value === "true") return true
   if (value === "false") return false
   const num = Number(value)
