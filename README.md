@@ -74,7 +74,7 @@ Gets you:
 ### Manual (Advanced)
 
 ```bash
-git clone https://github.com/Dammyjay93/interface-design.git
+git clone https://github.com/hwgprojects/interface-design.git
 cd interface-design
 cp -r .claude/* ~/.claude/
 cp -r .claude-plugin/* ~/.claude-plugin/
@@ -89,7 +89,7 @@ This repo is authored as a Claude Code plugin, but you can also convert its comm
 Option A: Convert with `compound-plugin` (requires Bun)
 
 ```bash
-git clone https://github.com/Dammyjay93/interface-design.git
+git clone https://github.com/hwgprojects/interface-design.git
 cd interface-design
 
 # OpenCode (global)
@@ -101,7 +101,9 @@ bunx @every-env/compound-plugin convert . --to codex --codex-home ~/.codex
 
 Note: the OpenCode converter writes a fresh `opencode.json` (with a timestamped `.bak.*` backup). If you already have an OpenCode config (for example from `compound-engineering`), prefer the Node converter below to merge commands instead of replacing.
 
-Option B: Convert with Node (merge-safe, no Bun)
+Note: Codex converters generally write into `~/.codex` and may overwrite prompts/skills if names collide. If you already have a Codex setup, prefer the Node converter below (it skips existing files by default).
+
+Option B: Convert with Node (merge-safe by default, no Bun)
 
 ```bash
 # from this repo root
@@ -110,6 +112,13 @@ node scripts/convert-claude-plugin.mjs
 # or one target
 node scripts/convert-claude-plugin.mjs --to opencode
 node scripts/convert-claude-plugin.mjs --to codex
+
+# custom install roots
+node scripts/convert-claude-plugin.mjs --to opencode --opencode-root ~/.config/opencode
+node scripts/convert-claude-plugin.mjs --to codex --codex-home ~/.codex
+
+# overwrite existing files (not merge-safe)
+node scripts/convert-claude-plugin.mjs --overwrite
 ```
 
 ---

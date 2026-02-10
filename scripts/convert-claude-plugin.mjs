@@ -12,6 +12,11 @@ import os from "node:os"
  *   node scripts/convert-claude-plugin.mjs            # convert cwd to both targets
  *   node scripts/convert-claude-plugin.mjs --to codex
  *   node scripts/convert-claude-plugin.mjs --to opencode
+ *
+ * Options:
+ *   --opencode-root <path>    override OpenCode install root (default: ~/.config/opencode)
+ *   --codex-home <path>       override Codex home (default: ~/.codex)
+ *   --overwrite               overwrite existing files instead of skipping
  *   node scripts/convert-claude-plugin.mjs <pluginRoot>
  */
 
@@ -28,6 +33,13 @@ const to = getFlagValue(argv, "--to") ?? "both"
 const toOpenCode = to === "both" || to === "opencode"
 const toCodex = to === "both" || to === "codex"
 
+const overwrite = argv.includes("--overwrite")
+
+const opencodeRoot = resolvePath(
+  getFlagValue(argv, "--opencode-root") ?? path.join(os.homedir(), ".config", "opencode"),
+)
+const codexRoot = resolvePath(getFlagValue(argv, "--codex-home") ?? path.join(os.homedir(), ".codex"))
+
 const manifestPath = path.join(pluginRoot, ".claude-plugin", "plugin.json")
 const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"))
 
@@ -38,23 +50,26 @@ const commands = await loadCommands(commandsDirs)
 const skills = await loadSkills(skillsDirs)
 
 if (toOpenCode) {
-  const opencodeRoot = path.join(os.homedir(), ".config", "opencode")
-  const result = await installOpenCode(opencodeRoot, commands, skills)
+  const result = await installOpenCode(opencodeRoot, commands, skills, { overwrite })
   console.log(`OpenCode: installed to ${opencodeRoot}`)
-  if (result.skippedCommands.length > 0) {
-    console.warn("OpenCode: skipped commands due to name collisions:")
-    for (const name of result.skippedCommands) console.warn(`- ${name}`)
+  printList("OpenCode: skipped skills due to name collisions:", result.skippedSkills)
+  printList("OpenCode: skipped commands due to name collisions:", result.skippedCommands)
+  if (overwrite) {
+    printList("OpenCode: overwritten skills:", result.overwrittenSkills)
+    printList("OpenCode: overwritten commands:", result.overwrittenCommands)
   }
 }
 
 if (toCodex) {
-  const codexRoot = path.join(os.homedir(), ".codex")
-  const result = await installCodex(codexRoot, commands, skills)
+  const result = await installCodex(codexRoot, commands, skills, { overwrite })
   console.log(`Codex: installed to ${codexRoot}`)
-  if (result.overwrittenPrompts.length > 0 || result.overwrittenSkills.length > 0) {
-    console.warn("Codex: existing files overwritten:")
-    for (const name of result.overwrittenPrompts) console.warn(`- prompt: ${name}`)
-    for (const name of result.overwrittenSkills) console.warn(`- skill: ${name}`)
+  printList("Codex: skipped plugin skills due to name collisions:", result.skippedPluginSkills)
+  printList("Codex: skipped prompts due to name collisions:", result.skippedPrompts)
+  printList("Codex: skipped generated skills due to name collisions:", result.skippedGeneratedSkills)
+  if (overwrite) {
+    printList("Codex: overwritten plugin skills:", result.overwrittenPluginSkills)
+    printList("Codex: overwritten prompts:", result.overwrittenPrompts)
+    printList("Codex: overwritten generated skills:", result.overwrittenGeneratedSkills)
   }
 }
 
@@ -66,6 +81,20 @@ function getFlagValue(args, flag) {
   const value = args[idx + 1]
   if (!value || value.startsWith("-")) return null
   return String(value).trim()
+}
+
+function resolvePath(value) {
+  const raw = String(value ?? "").trim()
+  if (!raw) return process.cwd()
+  if (raw === "~") return os.homedir()
+  if (raw.startsWith("~/")) return path.resolve(path.join(os.homedir(), raw.slice(2)))
+  return path.resolve(raw)
+}
+
+function printList(header, items) {
+  if (!items || items.length === 0) return
+  console.warn(header)
+  for (const item of items) console.warn(`- ${item}`)
 }
 
 function resolveComponentDirs(root, defaultDir, custom) {
@@ -280,15 +309,25 @@ function sanitizeDescription(value, maxLength = 1024) {
   return normalized.slice(0, Math.max(0, maxLength - ellipsis.length)).trimEnd() + ellipsis
 }
 
-async function installOpenCode(opencodeRoot, commands, skills) {
+async function installOpenCode(opencodeRoot, commands, skills, options = {}) {
+  const overwrite = options.overwrite === true
   await ensureDir(opencodeRoot)
   await ensureDir(path.join(opencodeRoot, "agents"))
   await ensureDir(path.join(opencodeRoot, "plugins"))
   await ensureDir(path.join(opencodeRoot, "skills"))
 
   // Copy skills
+  const skippedSkills = []
+  const overwrittenSkills = []
   for (const skill of skills) {
     const target = path.join(opencodeRoot, "skills", skill.name)
+    if (await pathExists(target)) {
+      if (!overwrite) {
+        skippedSkills.push(skill.name)
+        continue
+      }
+      overwrittenSkills.push(skill.name)
+    }
     await copyDir(skill.sourceDir, target)
   }
 
@@ -307,11 +346,15 @@ async function installOpenCode(opencodeRoot, commands, skills) {
       : {}
 
   const skippedCommands = []
+  const overwrittenCommands = []
   for (const command of commands) {
     if (command.disableModelInvocation) continue
     if (Object.prototype.hasOwnProperty.call(commandMap, command.name)) {
-      skippedCommands.push(command.name)
-      continue
+      if (!overwrite) {
+        skippedCommands.push(command.name)
+        continue
+      }
+      overwrittenCommands.push(command.name)
     }
     commandMap[command.name] = {
       description: command.description,
@@ -322,10 +365,11 @@ async function installOpenCode(opencodeRoot, commands, skills) {
   config.command = commandMap
   await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n", "utf8")
 
-  return { skippedCommands }
+  return { skippedCommands, overwrittenCommands, skippedSkills, overwrittenSkills }
 }
 
-async function installCodex(codexRoot, commands, skills) {
+async function installCodex(codexRoot, commands, skills, options = {}) {
+  const overwrite = options.overwrite === true
   await ensureDir(codexRoot)
   const promptsDir = path.join(codexRoot, "prompts")
   const skillsDir = path.join(codexRoot, "skills")
@@ -333,15 +377,26 @@ async function installCodex(codexRoot, commands, skills) {
   await ensureDir(skillsDir)
 
   const usedSkillNames = new Set()
+  const skippedPluginSkills = []
+  const overwrittenPluginSkills = []
   for (const skill of skills) {
     usedSkillNames.add(normalizeName(skill.name))
     const target = path.join(skillsDir, skill.name)
+    if (await pathExists(target)) {
+      if (!overwrite) {
+        skippedPluginSkills.push(skill.name)
+        continue
+      }
+      overwrittenPluginSkills.push(skill.name)
+    }
     await copyDir(skill.sourceDir, target)
   }
 
   const promptNames = new Set()
+  const skippedPrompts = []
+  const skippedGeneratedSkills = []
   const overwrittenPrompts = []
-  const overwrittenSkills = []
+  const overwrittenGeneratedSkills = []
 
   for (const command of commands) {
     if (command.disableModelInvocation) continue
@@ -352,7 +407,13 @@ async function installCodex(codexRoot, commands, skills) {
     const genSkillDir = path.join(skillsDir, genSkillName)
     const genSkillPath = path.join(genSkillDir, "SKILL.md")
     await ensureDir(genSkillDir)
-    if (await pathExists(genSkillPath)) overwrittenSkills.push(genSkillName)
+    if (await pathExists(genSkillPath)) {
+      if (!overwrite) {
+        skippedGeneratedSkills.push(genSkillName)
+      } else {
+        overwrittenGeneratedSkills.push(genSkillName)
+      }
+    }
 
     const skillFrontmatter = {
       name: genSkillName,
@@ -368,14 +429,22 @@ async function installCodex(codexRoot, commands, skills) {
       )
     }
     skillSections.push(command.body)
-    await fs.writeFile(
-      genSkillPath,
-      formatFrontmatter(skillFrontmatter, skillSections.filter(Boolean).join("\n\n")),
-      "utf8",
-    )
+    if (!(await pathExists(genSkillPath)) || overwrite) {
+      await fs.writeFile(
+        genSkillPath,
+        formatFrontmatter(skillFrontmatter, skillSections.filter(Boolean).join("\n\n")),
+        "utf8",
+      )
+    }
 
     const promptPath = path.join(promptsDir, `${promptName}.md`)
-    if (await pathExists(promptPath)) overwrittenPrompts.push(promptName)
+    if (await pathExists(promptPath)) {
+      if (!overwrite) {
+        skippedPrompts.push(promptName)
+      } else {
+        overwrittenPrompts.push(promptName)
+      }
+    }
 
     const promptFrontmatter = {
       description: command.description,
@@ -387,8 +456,17 @@ async function installCodex(codexRoot, commands, skills) {
       command.body,
     ].join("\n")
 
-    await fs.writeFile(promptPath, formatFrontmatter(promptFrontmatter, promptBody), "utf8")
+    if (!(await pathExists(promptPath)) || overwrite) {
+      await fs.writeFile(promptPath, formatFrontmatter(promptFrontmatter, promptBody), "utf8")
+    }
   }
 
-  return { overwrittenPrompts, overwrittenSkills }
+  return {
+    skippedPluginSkills,
+    skippedPrompts,
+    skippedGeneratedSkills,
+    overwrittenPluginSkills,
+    overwrittenPrompts,
+    overwrittenGeneratedSkills,
+  }
 }
