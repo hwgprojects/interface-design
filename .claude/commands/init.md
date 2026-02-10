@@ -5,11 +5,11 @@ description: Build UI with craft and consistency. For interface design (dashboar
 
 ## Required Reading — Do This First
 
-Before writing any code, read this file completely:
+Before writing any code, read this completely:
 
-1. `../skills/interface-design/SKILL.md` — the foundation, principles, craft knowledge, and checks
+1. `interface-design` skill — the foundation, principles, craft knowledge, and checks
 
-Do not skip this. The craft knowledge is in this file.
+Do not skip this. The craft knowledge is in this skill.
 
 ---
 

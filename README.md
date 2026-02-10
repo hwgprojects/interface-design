@@ -82,6 +82,36 @@ cp -r .claude-plugin/* ~/.claude-plugin/
 
 Restart Claude Code.
 
+### OpenCode + Codex (Experimental)
+
+This repo is authored as a Claude Code plugin, but you can also convert its commands + skills for OpenCode and/or Codex.
+
+Option A: Convert with `compound-plugin` (requires Bun)
+
+```bash
+git clone https://github.com/Dammyjay93/interface-design.git
+cd interface-design
+
+# OpenCode (global)
+bunx @every-env/compound-plugin convert . --to opencode --output ~/.config/opencode
+
+# Codex (global)
+bunx @every-env/compound-plugin convert . --to codex --codex-home ~/.codex
+```
+
+Note: the OpenCode converter writes a fresh `opencode.json` (with a timestamped `.bak.*` backup). If you already have an OpenCode config (for example from `compound-engineering`), prefer the Node converter below to merge commands instead of replacing.
+
+Option B: Convert with Node (merge-safe, no Bun)
+
+```bash
+# from this repo root
+node scripts/convert-claude-plugin.mjs
+
+# or one target
+node scripts/convert-claude-plugin.mjs --to opencode
+node scripts/convert-claude-plugin.mjs --to codex
+```
+
 ---
 
 ## How It Works
